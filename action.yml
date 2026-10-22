@@ -43,4 +43,4 @@ runs:
         NOTION_PAGE: ${{ inputs.notion-page }}
         NOTION_DATABASE_ID: ${{ inputs.notion-database-id }}
         NOTION_DATA_SOURCE_ID: ${{ inputs.notion-data-source-id }}
-      run: weread2notion sync
+      run: python "$GITHUB_ACTION_PATH/scripts/run_actions.py"
