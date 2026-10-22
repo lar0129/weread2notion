@@ -28,3 +28,28 @@ jobs:
           notion-page: ${{ secrets.NOTION_PAGE }}
           notion-database-id: ${{ secrets.NOTION_DATABASE_ID }}
           notion-data-source-id: ${{ secrets.NOTION_DATA_SOURCE_ID }}
+
+  keepalive:
+    name: Keep scheduled sync active
+    needs: sync
+    if: ${{ always() && !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Record activity after 30 days without a commit
+        shell: bash
+        run: |
+          last_commit_epoch=$(git log -1 --format=%ct)
+          current_epoch=$(date +%s)
+          if (( current_epoch - last_commit_epoch < 30 * 24 * 60 * 60 )); then
+            echo "Recent repository activity found; no maintenance commit needed."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit --allow-empty -m 'chore: keep scheduled sync active'
+          git push origin HEAD:main
